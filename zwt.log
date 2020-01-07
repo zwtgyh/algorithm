@@ -1,0 +1,8 @@
+On branch master
+Your branch is ahead of 'origin/master' by 1 commit.
+  (use "git push" to publish your local commits)
+
+nothing to commit, working tree clean
+To github.com:zwtgyh/algorithm.git
+ ! [remote rejected] master -> master (cannot lock ref 'refs/heads/master': is at 9cd7539c4f7bca9f8f1cc569ac063309c5ac0c18 but expected f44feb3f8db757e8d35fa507cb65d44bceb4b396)
+error: failed to push some refs to 'git@github.com:zwtgyh/algorithm.git'
