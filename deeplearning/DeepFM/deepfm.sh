@@ -17,7 +17,7 @@ python3 /home/dc/deeplearning/DeepFM/DeepFM_tf.py \
 --feature_size=$feature_size \
 --deep_layers=400,400,400 \
 --dropout=0.5,0.5,0.5 \
---log_steps=1024 \
+--log_steps=30 \
 --num_threads=12 \
 --model_dir=/home/dc/deeplearning/DeepFM/model_ckpt/model_ckpt \
 --data_dir=$data_dir \
@@ -33,7 +33,7 @@ python3 /home/dc/deeplearning/DeepFM/DeepFM_tf.py \
 --feature_size=$feature_size \
 --deep_layers=400,400,400 \
 --dropout=0.5,0.5,0.5 \
---log_steps=1024 \
+--log_steps=30 \
 --num_threads=12 \
 --model_dir=/home/dc/deeplearning/DeepFM/model_ckpt/model_ckpt \
 --data_dir=$data_dir 
@@ -57,7 +57,7 @@ python3 /home/dc/deeplearning/DeepFM/DeepFM_tf.py \
 --feature_size=$feature_size \
 --deep_layers=400,400,400 \
 --dropout=0.5,0.5,0.5 \
---log_steps=1024 \
+--log_steps=30 \
 --num_threads=12 \
 --model_dir=/home/dc/deeplearning/DeepFM/model_ckpt/model_ckpt \
 --servable_model_dir=$servable_model_dir

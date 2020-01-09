@@ -3,11 +3,11 @@ import os
 import re
 import time
 
-batch_size_list = [256, 512, 1024, 2560, 5120, 10240, 20480]
-learning_rate_list = [0.001, 0.01, 0.1, 1, 10]
+batch_size_list = [256, 512, 1024, 2560, 5120, 10240, 20480, 50000]
+learning_rate_list = [0.001, 0.01, 0.1, 0.0005, 0.0015, 0.002, 0.0004, 0.0006]
 optimizer_list = ['Adam', 'Adagrad', 'Momentum', 'ftrl']
-deep_layers_list = ['400,400,400', '256,128,64', '512,256,128', '512,128,512']
-
+deep_layers_list = ['400,400,400', '100,100,100', '200,200,200', '64,128,256', '128,256,512', '256,128,64', '512,256,128', '64,512,64', '512,64,512']
+dropout_list = ['0.5,0.5,0.5', '0.4,0.4,0.4', '0.3,0.3,0.3', '0.2,0.2,0.2', '0.66,0.77,0.88', '0.9,0.9,0.9']
 
 
 
@@ -36,17 +36,32 @@ for batch_size in batch_size_list:
 	--optimizer=Adam \
 	--num_epochs=2 \
 	--batch_size={1} \
-	--field_size=55 \
-	--feature_size=9251 \
+	--field_size=51 \
+	--feature_size=8945 \
 	--deep_layers=400,400,400 \
 	--dropout=0.5,0.5,0.5 \
 	--log_steps=30 \
 	--num_threads=12 \
 	--model_dir=/home/dc/test/deeplearning/DeepFM/model_ckpt/model_ckpt \
-	--data_dir=/home/dc/deeplearning/DeepFM/data/20191228/ \
-	--clear_existing_model=True \
+	--data_dir=/home/dc/deeplearning/DeepFM/data/20200109/ \
+	--clear_existing_model=True""".format(i_log, batch_size)
+	command_train1 = """python3 /home/dc/deeplearning/DeepFM/DeepFM_tf.py \
+	--task_type=eval \
+	--learning_rate=0.001 \
+	--optimizer=Adam \
+	--num_epochs=2 \
+	--batch_size={1} \
+	--field_size=51 \
+	--feature_size=8945 \
+	--deep_layers=400,400,400 \
+	--dropout=0.5,0.5,0.5 \
+	--log_steps=30 \
+	--num_threads=12 \
+	--model_dir=/home/dc/test/deeplearning/DeepFM/model_ckpt/model_ckpt \
+	--data_dir=/home/dc/deeplearning/DeepFM/data/20200109/ \
 	> /home/dc/test/log/deepfm_train_{0}.log 2>&1 &""".format(i_log, batch_size)
 	os.system(command_train)
+	os.system(command_train1)
 	log_path = "/home/dc/test/log/deepfm_train_{}.log".format(i_log)
 	log_time = "stat -c %Y /home/dc/test/log/deepfm_train_{}.log".format(i_log)
 	final_write_time = [0, 1, 2]
@@ -76,17 +91,32 @@ for learning_rate in learning_rate_list:
 	--optimizer=Adam \
 	--num_epochs=2 \
 	--batch_size={1} \
-	--field_size=55 \
-	--feature_size=9251 \
+	--field_size=51 \
+	--feature_size=8945 \
 	--deep_layers=400,400,400 \
 	--dropout=0.5,0.5,0.5 \
 	--log_steps=30 \
 	--num_threads=12 \
 	--model_dir=/home/dc/test/deeplearning/DeepFM/model_ckpt/model_ckpt \
-	--data_dir=/home/dc/deeplearning/DeepFM/data/20191228/ \
-	--clear_existing_model=True \
+	--data_dir=/home/dc/deeplearning/DeepFM/data/20200109/ \
+	--clear_existing_model=True""".format(i_log, batch_size, learning_rate)
+	command_train1 = """python3 /home/dc/deeplearning/DeepFM/DeepFM_tf.py \
+	--task_type=train \
+	--learning_rate={2} \
+	--optimizer=Adam \
+	--num_epochs=2 \
+	--batch_size={1} \
+	--field_size=51 \
+	--feature_size=8945 \
+	--deep_layers=400,400,400 \
+	--dropout=0.5,0.5,0.5 \
+	--log_steps=30 \
+	--num_threads=12 \
+	--model_dir=/home/dc/test/deeplearning/DeepFM/model_ckpt/model_ckpt \
+	--data_dir=/home/dc/deeplearning/DeepFM/data/20200109/ \
 	> /home/dc/test/log/deepfm_train_{0}.log 2>&1 &""".format(i_log, batch_size, learning_rate)
 	os.system(command_train)
+	os.system(command_train1)
 	log_path = "/home/dc/test/log/deepfm_train_{}.log".format(i_log)
 	log_time = "stat -c %Y /home/dc/test/log/deepfm_train_{}.log".format(i_log)
 	final_write_time = [0, 1, 2]
@@ -116,17 +146,32 @@ for optimizer in optimizer_list:
 	--optimizer={3} \
 	--num_epochs=2 \
 	--batch_size={1} \
-	--field_size=55 \
-	--feature_size=9251 \
+	--field_size=51 \
+	--feature_size=8945 \
 	--deep_layers=400,400,400 \
 	--dropout=0.5,0.5,0.5 \
 	--log_steps=30 \
 	--num_threads=12 \
 	--model_dir=/home/dc/test/deeplearning/DeepFM/model_ckpt/model_ckpt \
-	--data_dir=/home/dc/deeplearning/DeepFM/data/20191228/ \
-	--clear_existing_model=True \
+	--data_dir=/home/dc/deeplearning/DeepFM/data/20200109/ \
+	--clear_existing_model=True""".format(i_log, batch_size, learning_rate, optimizer)
+	command_train1 = """python3 /home/dc/deeplearning/DeepFM/DeepFM_tf.py \
+	--task_type=train \
+	--learning_rate={2} \
+	--optimizer={3} \
+	--num_epochs=2 \
+	--batch_size={1} \
+	--field_size=51 \
+	--feature_size=8945 \
+	--deep_layers=400,400,400 \
+	--dropout=0.5,0.5,0.5 \
+	--log_steps=30 \
+	--num_threads=12 \
+	--model_dir=/home/dc/test/deeplearning/DeepFM/model_ckpt/model_ckpt \
+	--data_dir=/home/dc/deeplearning/DeepFM/data/20200109/ \
 	> /home/dc/test/log/deepfm_train_{0}.log 2>&1 &""".format(i_log, batch_size, learning_rate, optimizer)
 	os.system(command_train)
+	os.system(command_train1)
 	log_path = "/home/dc/test/log/deepfm_train_{}.log".format(i_log)
 	log_time = "stat -c %Y /home/dc/test/log/deepfm_train_{}.log".format(i_log)
 	final_write_time = [0, 1, 2]
@@ -156,17 +201,32 @@ for deep_layers in deep_layers_list:
 	--optimizer={3} \
 	--num_epochs=2 \
 	--batch_size={1} \
-	--field_size=55 \
-	--feature_size=9251 \
+	--field_size=51 \
+	--feature_size=8945 \
 	--deep_layers={4} \
 	--dropout=0.5,0.5,0.5 \
 	--log_steps=30 \
 	--num_threads=12 \
 	--model_dir=/home/dc/test/deeplearning/DeepFM/model_ckpt/model_ckpt \
-	--data_dir=/home/dc/deeplearning/DeepFM/data/20191228/ \
-	--clear_existing_model=True \
+	--data_dir=/home/dc/deeplearning/DeepFM/data/20200109/ \
+	--clear_existing_model=True""".format(i_log, batch_size, learning_rate, optimizer, deep_layers)
+	command_train1 = """python3 /home/dc/deeplearning/DeepFM/DeepFM_tf.py \
+	--task_type=train \
+	--learning_rate={2} \
+	--optimizer={3} \
+	--num_epochs=2 \
+	--batch_size={1} \
+	--field_size=51 \
+	--feature_size=8945 \
+	--deep_layers={4} \
+	--dropout=0.5,0.5,0.5 \
+	--log_steps=30 \
+	--num_threads=12 \
+	--model_dir=/home/dc/test/deeplearning/DeepFM/model_ckpt/model_ckpt \
+	--data_dir=/home/dc/deeplearning/DeepFM/data/20200109/ \
 	> /home/dc/test/log/deepfm_train_{0}.log 2>&1 &""".format(i_log, batch_size, learning_rate, optimizer, deep_layers)
 	os.system(command_train)
+	os.system(command_train1)
 	log_path = "/home/dc/test/log/deepfm_train_{}.log".format(i_log)
 	log_time = "stat -c %Y /home/dc/test/log/deepfm_train_{}.log".format(i_log)
 	final_write_time = [0, 1, 2]
@@ -185,10 +245,70 @@ for deep_layers in deep_layers_list:
 		f.write(str(auc_dict))
 	i_log += 1
 
+deep_layers_index = auc_deep_layers.index(max(auc_deep_layers))
+deep_layers = deep_layers_list[deep_layers_index]
+
+
+for dropout in dropout_list:
+	command_train = """python3 /home/dc/deeplearning/DeepFM/DeepFM_tf.py \
+	--task_type=train \
+	--learning_rate={2} \
+	--optimizer={3} \
+	--num_epochs=2 \
+	--batch_size={1} \
+	--field_size=51 \
+	--feature_size=8945 \
+	--deep_layers={4} \
+	--dropout={5} \
+	--log_steps=30 \
+	--num_threads=12 \
+	--model_dir=/home/dc/test/deeplearning/DeepFM/model_ckpt/model_ckpt \
+	--data_dir=/home/dc/deeplearning/DeepFM/data/20200109/ \
+	--clear_existing_model=True""".format(i_log, batch_size, learning_rate, optimizer, deep_layers, dropout)
+	command_train1 = """python3 /home/dc/deeplearning/DeepFM/DeepFM_tf.py \
+	--task_type=train \
+	--learning_rate={2} \
+	--optimizer={3} \
+	--num_epochs=2 \
+	--batch_size={1} \
+	--field_size=51 \
+	--feature_size=8945 \
+	--deep_layers={4} \
+	--dropout={5} \
+	--log_steps=30 \
+	--num_threads=12 \
+	--model_dir=/home/dc/test/deeplearning/DeepFM/model_ckpt/model_ckpt \
+	--data_dir=/home/dc/deeplearning/DeepFM/data/20200109/ \
+	> /home/dc/test/log/deepfm_train_{0}.log 2>&1 &""".format(i_log, batch_size, learning_rate, optimizer, deep_layers, dropout)
+	os.system(command_train)
+	os.system(command_train1)
+	log_path = "/home/dc/test/log/deepfm_train_{}.log".format(i_log)
+	log_time = "stat -c %Y /home/dc/test/log/deepfm_train_{}.log".format(i_log)
+	final_write_time = [0, 1, 2]
+	while True:
+		final_write_time.append(os.popen(log_time).read())
+		if final_write_time[-1] == final_write_time[-2]:
+			if final_write_time[-2] == final_write_time[-3]:
+				break
+		time.sleep(60)
+	log = open(log_path, "r").read()
+	auc = eval(max(re.findall(r"auc = (.+?),",log)))
+	auc_deep_layers.append(auc)
+	dict_key = "batch_size={},learning_rate={},optimizer={},deep_layers={},dropout={}".format(batch_size, learning_rate, optimizer, deep_layers, dropout)
+	auc_dict[dict_key] = auc
+	with open("/home/dc/test/auc_dict.txt", "w") as f:
+		f.write(str(auc_dict))
+	i_log += 1
+
+deep_layers_index = auc_deep_layers.index(max(auc_deep_layers))
+deep_layers = deep_layers_list[deep_layers_index]
+
+bestdict = {}
+bestdict['batch_size'] = batch_size
+bestdict['learning_rate'] = learning_rate
+bestdict['optimizer'] = optimizer
+bestdict['deep_layers'] = deep_layers
+bestdict['dropout'] = dropout
+
 with open("/home/dc/test/final.txt", "w") as f:
-	f.write("finish")
-
-
-
-
-
+	f.write(str(bestdict))

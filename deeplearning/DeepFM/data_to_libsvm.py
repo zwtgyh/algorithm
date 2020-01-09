@@ -60,7 +60,7 @@ for i in range(2, len(result)):
 
 command_mkdir = "/home/dc/deeplearning/DeepFM/data/{}".format(today_0)
 if os.path.isdir(command_mkdir):
-	command_remove = "mv {} /home/dc/deeplearning/DeepFM/data/old".format(command_mkdir)
+	command_remove = "rm -rf {}".format(command_mkdir)
 	os.system(command_remove)
 	os.mkdir(command_mkdir)
 else:

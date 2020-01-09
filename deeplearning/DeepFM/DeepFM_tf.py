@@ -61,6 +61,13 @@ tf.app.flags.DEFINE_string("servable_model_dir", '', "export servable model for 
 tf.app.flags.DEFINE_string("task_type", 'train', "task type {train, infer, eval, export}")
 tf.app.flags.DEFINE_boolean("clear_existing_model", False, "clear existing model or not")
 
+#os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
+
+#hooks = [tf.train.ProfilerHook(output_dir="/home/dc/test/time", save_steps=500, show_dataflow=True, show_memory=True)]
+
+#hooks = [tf.train.SummarySaverHook(save_steps=500, output_dir="/home/dc/test/time2", scaffold=tf.train.Scaffold(summary_op=tf.summary.merge_all()))]
+
+
 #1 1:0.5 2:0.03519 3:1 4:0.02567 7:0.03708 8:0.01705 9:0.06296 10:0.18185 11:0.02497 12:1 14:0.02565 15:0.03267 17:0.0247 18:0.03158 20:1 22:1 23:0.13169 24:0.02933 27:0.18159 31:0.0177 34:0.02888 38:1 51:1 63:1 132:1 164:1 236:1
 #input_fn是estimator的格式化输入数据函数，要求返回一个字典和一个标签,字典格式为"特征名":feature_value,其中值为Tensor或Sparse Tensor，标签格式为Tensor
 def input_fn(filenames, batch_size=32, num_epochs=1, perform_shuffle=False):
@@ -70,12 +77,12 @@ def input_fn(filenames, batch_size=32, num_epochs=1, perform_shuffle=False):
         #features = dict(zip(CSV_COLUMNS, columns))
         #labels = features.pop(LABEL_COLUMN)
         columns = tf.string_split([line], ' ')
-        labels = tf.string_to_number(columns.values[0], out_type=tf.float32)
+        labels = tf.strings.to_number(columns.values[0], out_type=tf.float32)
         splits = tf.string_split(columns.values[1:], ':')
         id_vals = tf.reshape(splits.values,splits.dense_shape)
         feat_ids, feat_vals = tf.split(id_vals,num_or_size_splits=2,axis=1)
-        feat_ids = tf.string_to_number(feat_ids, out_type=tf.int32)
-        feat_vals = tf.string_to_number(feat_vals, out_type=tf.float32)
+        feat_ids = tf.strings.to_number(feat_ids, out_type=tf.int32)
+        feat_vals = tf.strings.to_number(feat_vals, out_type=tf.float32)
         #feat_ids = tf.reshape(feat_ids,shape=[-1,FLAGS.field_size])
         #for i in range(splits.dense_shape.eval()[0]):
         #    feat_ids.append(tf.string_to_number(splits.values[2*i], out_type=tf.int32))
@@ -121,9 +128,9 @@ def model_fn(features, labels, mode, params):
     dropout = list(dropout)
 
     #------bulid weights------
-    FM_B = tf.get_variable(name='fm_bias', shape=[1], initializer=tf.constant_initializer(0.0))   #截距项
-    FM_W = tf.get_variable(name='fm_w', shape=[feature_size], initializer=tf.glorot_normal_initializer())   #就是FM部分一次项的权重 #它从以0为中心的截断正态分布中抽取样本,一维数组
-    FM_V = tf.get_variable(name='fm_v', shape=[feature_size, embedding_size], initializer=tf.glorot_normal_initializer())  #embedding权重,feature_size代表将离散特征转换成one hot后的特征长度，embedding_size代表每个embedding的长度，即one hot向Dense ector转换时候的Vik的k，Vik长度为:feature_size*embedding_size
+    FM_B = tf.compat.v1.get_variable(name='fm_bias', shape=[1], initializer=tf.constant_initializer(0.0))   #截距项
+    FM_W = tf.compat.v1.get_variable(name='fm_w', shape=[feature_size], initializer=tf.glorot_normal_initializer())   #就是FM部分一次项的权重 #它从以0为中心的截断正态分布中抽取样本,一维数组
+    FM_V = tf.compat.v1.get_variable(name='fm_v', shape=[feature_size, embedding_size], initializer=tf.glorot_normal_initializer())  #embedding权重,feature_size代表将离散特征转换成one hot后的特征长度，embedding_size代表每个embedding的长度，即one hot向Dense ector转换时候的Vik的k，Vik长度为:feature_size*embedding_size
 
     #------build feaure-------
     feat_ids = features['feat_ids']
@@ -132,11 +139,11 @@ def model_fn(features, labels, mode, params):
     feat_vals = tf.reshape(feat_vals,shape=[-1,field_size])    #使用one hot前的数据维度来适配，一行数据就是一个样本点
 
     #------build f(x)------
-    with tf.variable_scope("First-order"):
+    with tf.compat.v1.variable_scope("First-order"):
         feat_wgts = tf.nn.embedding_lookup(FM_W, feat_ids)              # None * F * 1  #根据feat_id找到FM_W
         y_w = tf.reduce_sum(tf.multiply(feat_wgts, feat_vals),1)        # 对应位置元素相乘后再按行求和,就是y_w
 
-    with tf.variable_scope("Second-order"):
+    with tf.compat.v1.variable_scope("Second-order"):
         embeddings = tf.nn.embedding_lookup(FM_V, feat_ids)             # None * F * K  #根据id找到FM_V，即Vik
         feat_vals = tf.reshape(feat_vals, shape=[-1, field_size, 1])    # 把所有数据用"[]"框起来，便于下一步矩阵运算
         embeddings = tf.multiply(embeddings, feat_vals)                 # vij*xi
@@ -144,7 +151,7 @@ def model_fn(features, labels, mode, params):
         square_sum = tf.reduce_sum(tf.square(embeddings),1)
         y_v = 0.5*tf.reduce_sum(tf.subtract(sum_square, square_sum),1)	# None * 1
 
-    with tf.variable_scope("Deep-part"):
+    with tf.compat.v1.variable_scope("Deep-part"):
         # 148-159代码batch_norm模块是没用到的 #更正，写了新的batch_norm_layer进行batch_norm，这里主要传递train_phase等参数
         if FLAGS.batch_norm:
             #normalizer_fn = tf.contrib.layers.batch_norm
@@ -180,7 +187,7 @@ def model_fn(features, labels, mode, params):
         #sig_bias = tf.get_variable(name='sigmoid_bias', shape=[1], initializer=tf.constant_initializer(0.0))
         #deep_out = tf.nn.xw_plus_b(deep_inputs,sig_wgts,sig_bias,name='deep_out')
 
-    with tf.variable_scope("DeepFM-out"):
+    with tf.compat.v1.variable_scope("DeepFM-out"):
         #y_bias = FM_B * tf.ones_like(labels, dtype=tf.float32)  # None * 1  warning;这里不能用label，否则调用predict/export函数会出错，train/evaluate正常；初步判断estimator做了优化，用不到label时不传
         y_bias = FM_B * tf.ones_like(y_d, dtype=tf.float32)      # None * 1
         y = y_bias + y_w + y_v + y_d
@@ -188,7 +195,7 @@ def model_fn(features, labels, mode, params):
         #pred = tf.Session().run(y)
 
     predictions={"prob": pred}    #保存输出为字典
-    export_outputs = {tf.saved_model.signature_constants.DEFAULT_SERVING_SIGNATURE_DEF_KEY: tf.estimator.export.PredictOutput(predictions)}  #输出
+    export_outputs = {tf.saved_model.DEFAULT_SERVING_SIGNATURE_DEF_KEY: tf.estimator.export.PredictOutput(predictions)}  #输出
     # Provide an estimator spec for `ModeKeys.PREDICT`
     if mode == tf.estimator.ModeKeys.PREDICT:      #预测模式
         return tf.estimator.EstimatorSpec(
@@ -204,7 +211,7 @@ def model_fn(features, labels, mode, params):
 
     # Provide an estimator spec for `ModeKeys.EVAL`
     eval_metric_ops = {
-        "auc": tf.metrics.auc(labels, pred)
+        "auc": tf.compat.v1.metrics.auc(labels, pred)
     }
     if mode == tf.estimator.ModeKeys.EVAL:      #评估模式
         return tf.estimator.EstimatorSpec(
@@ -215,7 +222,7 @@ def model_fn(features, labels, mode, params):
 
     #------bulid optimizer------
     if FLAGS.optimizer == 'Adam':
-        optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.9, beta2=0.999, epsilon=1e-8)
+        optimizer = tf.compat.v1.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.9, beta2=0.999, epsilon=1e-8)
     elif FLAGS.optimizer == 'Adagrad':
         optimizer = tf.train.AdagradOptimizer(learning_rate=learning_rate, initial_accumulator_value=1e-8)
     elif FLAGS.optimizer == 'Momentum':
@@ -223,7 +230,7 @@ def model_fn(features, labels, mode, params):
     elif FLAGS.optimizer == 'ftrl':
         optimizer = tf.train.FtrlOptimizer(learning_rate)
 
-    train_op = optimizer.minimize(loss, global_step=tf.train.get_global_step())
+    train_op = optimizer.minimize(loss, global_step=tf.compat.v1.train.get_global_step())
 
     # Provide an estimator spec for `ModeKeys.TRAIN` modes
     if mode == tf.estimator.ModeKeys.TRAIN:
@@ -380,5 +387,6 @@ def main(_):    #主函数中的tf.app.run()会调用main，并传递参数，�
         DeepFM.export_savedmodel(FLAGS.servable_model_dir, serving_input_receiver_fn)
 
 if __name__ == "__main__":
-    tf.logging.set_verbosity(tf.logging.INFO)   #将TensorFlow日志信息输出到屏幕
-    tf.app.run()       #配合tf.app.flags使用，即通过处理flag解析，然后执行main函数。。正是因为这里的tf.app.run，前面的main函数才要写成main(_)
+    tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.INFO)   #将TensorFlow日志信息输出到屏幕
+    tf.compat.v1.app.run()       #配合tf.app.flags使用，即通过处理flag解析，然后执行main函数。。正是因为这里的tf.app.run，前面的main函数才要写成main(_)
+    #tf.compat.v1.app.run(options=tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE), run_metadata=tf.RunMetadata())
