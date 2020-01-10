@@ -45,6 +45,10 @@ for k in drop_list:
 
 drop_list_index.sort(reverse=True)
 
+for k in drop_list_index:
+	del column_name_list_sql[k]
+column_name_list = column_name_list_sql
+
 one_hot_filename = '/home/dc/deeplearning/DeepFM/one_hot_dict/one_hot_dict_{}.txt'.format(today_0)
 one_hot_dict = open(one_hot_filename, 'r')
 one_hot_dict = eval(one_hot_dict.read())

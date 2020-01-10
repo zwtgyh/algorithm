@@ -44,24 +44,9 @@ for batch_size in batch_size_list:
 	--num_threads=12 \
 	--model_dir=/home/dc/test/deeplearning/DeepFM/model_ckpt/model_ckpt \
 	--data_dir=/home/dc/deeplearning/DeepFM/data/20200109/ \
-	--clear_existing_model=True""".format(i_log, batch_size)
-	command_train1 = """python3 /home/dc/deeplearning/DeepFM/DeepFM_tf.py \
-	--task_type=eval \
-	--learning_rate=0.001 \
-	--optimizer=Adam \
-	--num_epochs=2 \
-	--batch_size={1} \
-	--field_size=51 \
-	--feature_size=8945 \
-	--deep_layers=400,400,400 \
-	--dropout=0.5,0.5,0.5 \
-	--log_steps=30 \
-	--num_threads=12 \
-	--model_dir=/home/dc/test/deeplearning/DeepFM/model_ckpt/model_ckpt \
-	--data_dir=/home/dc/deeplearning/DeepFM/data/20200109/ \
+	--clear_existing_model=True \
 	> /home/dc/test/log/deepfm_train_{0}.log 2>&1 &""".format(i_log, batch_size)
 	os.system(command_train)
-	os.system(command_train1)
 	log_path = "/home/dc/test/log/deepfm_train_{}.log".format(i_log)
 	log_time = "stat -c %Y /home/dc/test/log/deepfm_train_{}.log".format(i_log)
 	final_write_time = [0, 1, 2]
@@ -99,24 +84,9 @@ for learning_rate in learning_rate_list:
 	--num_threads=12 \
 	--model_dir=/home/dc/test/deeplearning/DeepFM/model_ckpt/model_ckpt \
 	--data_dir=/home/dc/deeplearning/DeepFM/data/20200109/ \
-	--clear_existing_model=True""".format(i_log, batch_size, learning_rate)
-	command_train1 = """python3 /home/dc/deeplearning/DeepFM/DeepFM_tf.py \
-	--task_type=train \
-	--learning_rate={2} \
-	--optimizer=Adam \
-	--num_epochs=2 \
-	--batch_size={1} \
-	--field_size=51 \
-	--feature_size=8945 \
-	--deep_layers=400,400,400 \
-	--dropout=0.5,0.5,0.5 \
-	--log_steps=30 \
-	--num_threads=12 \
-	--model_dir=/home/dc/test/deeplearning/DeepFM/model_ckpt/model_ckpt \
-	--data_dir=/home/dc/deeplearning/DeepFM/data/20200109/ \
+	--clear_existing_model=True \
 	> /home/dc/test/log/deepfm_train_{0}.log 2>&1 &""".format(i_log, batch_size, learning_rate)
 	os.system(command_train)
-	os.system(command_train1)
 	log_path = "/home/dc/test/log/deepfm_train_{}.log".format(i_log)
 	log_time = "stat -c %Y /home/dc/test/log/deepfm_train_{}.log".format(i_log)
 	final_write_time = [0, 1, 2]
@@ -154,24 +124,9 @@ for optimizer in optimizer_list:
 	--num_threads=12 \
 	--model_dir=/home/dc/test/deeplearning/DeepFM/model_ckpt/model_ckpt \
 	--data_dir=/home/dc/deeplearning/DeepFM/data/20200109/ \
-	--clear_existing_model=True""".format(i_log, batch_size, learning_rate, optimizer)
-	command_train1 = """python3 /home/dc/deeplearning/DeepFM/DeepFM_tf.py \
-	--task_type=train \
-	--learning_rate={2} \
-	--optimizer={3} \
-	--num_epochs=2 \
-	--batch_size={1} \
-	--field_size=51 \
-	--feature_size=8945 \
-	--deep_layers=400,400,400 \
-	--dropout=0.5,0.5,0.5 \
-	--log_steps=30 \
-	--num_threads=12 \
-	--model_dir=/home/dc/test/deeplearning/DeepFM/model_ckpt/model_ckpt \
-	--data_dir=/home/dc/deeplearning/DeepFM/data/20200109/ \
+	--clear_existing_model=True \
 	> /home/dc/test/log/deepfm_train_{0}.log 2>&1 &""".format(i_log, batch_size, learning_rate, optimizer)
 	os.system(command_train)
-	os.system(command_train1)
 	log_path = "/home/dc/test/log/deepfm_train_{}.log".format(i_log)
 	log_time = "stat -c %Y /home/dc/test/log/deepfm_train_{}.log".format(i_log)
 	final_write_time = [0, 1, 2]
@@ -209,24 +164,9 @@ for deep_layers in deep_layers_list:
 	--num_threads=12 \
 	--model_dir=/home/dc/test/deeplearning/DeepFM/model_ckpt/model_ckpt \
 	--data_dir=/home/dc/deeplearning/DeepFM/data/20200109/ \
-	--clear_existing_model=True""".format(i_log, batch_size, learning_rate, optimizer, deep_layers)
-	command_train1 = """python3 /home/dc/deeplearning/DeepFM/DeepFM_tf.py \
-	--task_type=train \
-	--learning_rate={2} \
-	--optimizer={3} \
-	--num_epochs=2 \
-	--batch_size={1} \
-	--field_size=51 \
-	--feature_size=8945 \
-	--deep_layers={4} \
-	--dropout=0.5,0.5,0.5 \
-	--log_steps=30 \
-	--num_threads=12 \
-	--model_dir=/home/dc/test/deeplearning/DeepFM/model_ckpt/model_ckpt \
-	--data_dir=/home/dc/deeplearning/DeepFM/data/20200109/ \
+	--clear_existing_model=True \
 	> /home/dc/test/log/deepfm_train_{0}.log 2>&1 &""".format(i_log, batch_size, learning_rate, optimizer, deep_layers)
 	os.system(command_train)
-	os.system(command_train1)
 	log_path = "/home/dc/test/log/deepfm_train_{}.log".format(i_log)
 	log_time = "stat -c %Y /home/dc/test/log/deepfm_train_{}.log".format(i_log)
 	final_write_time = [0, 1, 2]
@@ -264,24 +204,9 @@ for dropout in dropout_list:
 	--num_threads=12 \
 	--model_dir=/home/dc/test/deeplearning/DeepFM/model_ckpt/model_ckpt \
 	--data_dir=/home/dc/deeplearning/DeepFM/data/20200109/ \
-	--clear_existing_model=True""".format(i_log, batch_size, learning_rate, optimizer, deep_layers, dropout)
-	command_train1 = """python3 /home/dc/deeplearning/DeepFM/DeepFM_tf.py \
-	--task_type=train \
-	--learning_rate={2} \
-	--optimizer={3} \
-	--num_epochs=2 \
-	--batch_size={1} \
-	--field_size=51 \
-	--feature_size=8945 \
-	--deep_layers={4} \
-	--dropout={5} \
-	--log_steps=30 \
-	--num_threads=12 \
-	--model_dir=/home/dc/test/deeplearning/DeepFM/model_ckpt/model_ckpt \
-	--data_dir=/home/dc/deeplearning/DeepFM/data/20200109/ \
+	--clear_existing_model=True \
 	> /home/dc/test/log/deepfm_train_{0}.log 2>&1 &""".format(i_log, batch_size, learning_rate, optimizer, deep_layers, dropout)
 	os.system(command_train)
-	os.system(command_train1)
 	log_path = "/home/dc/test/log/deepfm_train_{}.log".format(i_log)
 	log_time = "stat -c %Y /home/dc/test/log/deepfm_train_{}.log".format(i_log)
 	final_write_time = [0, 1, 2]
