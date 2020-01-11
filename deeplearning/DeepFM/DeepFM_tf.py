@@ -60,6 +60,7 @@ tf.app.flags.DEFINE_string("model_dir", '', "model check point dir")
 tf.app.flags.DEFINE_string("servable_model_dir", '', "export servable model for TensorFlow Serving")
 tf.app.flags.DEFINE_string("task_type", 'train', "task type {train, infer, eval, export}")
 tf.app.flags.DEFINE_boolean("clear_existing_model", False, "clear existing model or not")
+tf.app.flags.DEFINE_string("reg_type", 'l1', "Regularization type {l1 ,l2}")
 
 #os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 
@@ -115,6 +116,7 @@ def input_fn(filenames, batch_size=32, num_epochs=1, perform_shuffle=False):
 def model_fn(features, labels, mode, params):
     """Bulid Model function f(x) for Estimator."""
     #超参数------hyperparameters----
+    reg_type = params["reg_type"]
     field_size = params["field_size"]  #one hot前
     feature_size = params["feature_size"]  #one hot后
     embedding_size = params["embedding_size"]
@@ -205,10 +207,14 @@ def model_fn(features, labels, mode, params):
 
     #------bulid loss------
     #交叉熵损失函数
-    loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=y, labels=labels)) + \
-        l2_reg * tf.nn.l2_loss(FM_W) + \
-        l2_reg * tf.nn.l2_loss(FM_V)
-
+    if reg_type == 'l2':
+        loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=y, labels=labels)) + \
+            l2_reg * tf.nn.l2_loss(FM_W) + \
+            l2_reg * tf.nn.l2_loss(FM_V)
+    if reg_type == 'l1':
+        loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=y, labels=labels)) + \
+            l2_reg * tf.nn.l1_loss(FM_W) + \
+            l2_reg * tf.nn.l1_loss(FM_V)
     # Provide an estimator spec for `ModeKeys.EVAL`
     eval_metric_ops = {
         "auc": tf.compat.v1.metrics.auc(labels, pred)
