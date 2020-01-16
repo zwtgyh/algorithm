@@ -22,7 +22,7 @@ from datetime import date, timedelta
 from time import time
 #import gc
 #from multiprocessing import Process
-
+from math import log
 #import math
 import random
 #import pandas as pd
@@ -49,7 +49,7 @@ tf.app.flags.DEFINE_integer("log_steps", 1000, "save summary every steps")    #�
 tf.app.flags.DEFINE_float("learning_rate", 0.0005, "learning rate")
 tf.app.flags.DEFINE_float("l2_reg", 0.0001, "L2 regularization")
 tf.app.flags.DEFINE_string("loss_type", 'log_loss', "loss type {square_loss, log_loss}")
-tf.app.flags.DEFINE_string("optimizer", 'Adam', "optimizer type {Adam, Adagrad, GD, Momentum}")    #优化算法
+tf.app.flags.DEFINE_string("optimizer", 'Adam', "optimizer type {Adam, Adagrad, GD, Momentum, ftrl}")    #优化算法
 tf.app.flags.DEFINE_string("deep_layers", '256,128,64', "deep layers")  #每层隐层的长度
 tf.app.flags.DEFINE_string("dropout", '0.5,0.5,0.5', "dropout rate")    #防止过拟合的参数，注意:len(dropout) == len(layers)
 tf.app.flags.DEFINE_boolean("batch_norm", False, "perform batch normaization (True or False)")    #是否进行BN
@@ -60,7 +60,8 @@ tf.app.flags.DEFINE_string("model_dir", '', "model check point dir")
 tf.app.flags.DEFINE_string("servable_model_dir", '', "export servable model for TensorFlow Serving")
 tf.app.flags.DEFINE_string("task_type", 'train', "task type {train, infer, eval, export}")
 tf.app.flags.DEFINE_boolean("clear_existing_model", False, "clear existing model or not")
-tf.app.flags.DEFINE_string("reg_type", 'l1', "Regularization type {l1 ,l2}")
+tf.app.flags.DEFINE_string("reg_type", 'l2', "Regularization type {l1 ,l2}")
+#tf.app.flags.DEFINE_string("loss_type", 'cross', "loss type {cross, square}")  #设置损失函数类型，交叉熵/平方损失
 
 #os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 
@@ -116,7 +117,6 @@ def input_fn(filenames, batch_size=32, num_epochs=1, perform_shuffle=False):
 def model_fn(features, labels, mode, params):
     """Bulid Model function f(x) for Estimator."""
     #超参数------hyperparameters----
-    reg_type = params["reg_type"]
     field_size = params["field_size"]  #one hot前
     feature_size = params["feature_size"]  #one hot后
     embedding_size = params["embedding_size"]
@@ -128,6 +128,7 @@ def model_fn(features, labels, mode, params):
     layers = list(layers) 
     dropout = map(float, params["dropout"].split(','))
     dropout = list(dropout)
+    #reg_type = params["reg_type"]
 
     #------bulid weights------
     FM_B = tf.compat.v1.get_variable(name='fm_bias', shape=[1], initializer=tf.constant_initializer(0.0))   #截距项
@@ -207,14 +208,25 @@ def model_fn(features, labels, mode, params):
 
     #------bulid loss------
     #交叉熵损失函数
-    if reg_type == 'l2':
-        loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=y, labels=labels)) + \
-            l2_reg * tf.nn.l2_loss(FM_W) + \
-            l2_reg * tf.nn.l2_loss(FM_V)
-    if reg_type == 'l1':
-        loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=y, labels=labels)) + \
-            l2_reg * tf.nn.l1_loss(FM_W) + \
-            l2_reg * tf.nn.l1_loss(FM_V)
+    if FLAGS.reg_type == 'l2':
+        if FLAGS.loss_type == 'log_loss':
+            loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=y, labels=labels)) + \
+                l2_reg * tf.nn.l2_loss(FM_W) + \
+                l2_reg * tf.nn.l2_loss(FM_V)
+        if FLAGS.loss_type == 'square_loss':
+            loss = tf.reduce_mean(tf.square(pred - y)) + \
+                l2_reg * tf.nn.l2_loss(FM_W) + \
+                l2_reg * tf.nn.l2_loss(FM_V)
+    if FLAGS.reg_type == 'l1':
+        if FLAGS.loss_type == 'log_loss':
+            loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=y, labels=labels)) + \
+                tf.contrib.layers.l1_regularizer(l2_reg)(FM_W) + \
+                tf.contrib.layers.l1_regularizer(l2_reg)(FM_V)
+        if FLAGS.loss_type == 'square_loss':
+            loss = tf.reduce_mean(tf.square(pred - y)) + \
+                l2_reg * tf.nn.l2_loss(FM_W) + \
+                l2_reg * tf.nn.l2_loss(FM_V)
+
     # Provide an estimator spec for `ModeKeys.EVAL`
     eval_metric_ops = {
         "auc": tf.compat.v1.metrics.auc(labels, pred)
@@ -229,12 +241,15 @@ def model_fn(features, labels, mode, params):
     #------bulid optimizer------
     if FLAGS.optimizer == 'Adam':
         optimizer = tf.compat.v1.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.9, beta2=0.999, epsilon=1e-8)
+        #optimizer = tf.train.GradientDescentOptimizer(0.02)
     elif FLAGS.optimizer == 'Adagrad':
         optimizer = tf.train.AdagradOptimizer(learning_rate=learning_rate, initial_accumulator_value=1e-8)
     elif FLAGS.optimizer == 'Momentum':
         optimizer = tf.train.MomentumOptimizer(learning_rate=learning_rate, momentum=0.95)
     elif FLAGS.optimizer == 'ftrl':
         optimizer = tf.train.FtrlOptimizer(learning_rate)
+    elif FLAGS.optimizer == 'GD':
+        optimizer = tf.train.GradientDescentOptimizer(learning_rate)
 
     train_op = optimizer.minimize(loss, global_step=tf.compat.v1.train.get_global_step())
 
