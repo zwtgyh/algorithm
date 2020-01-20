@@ -53,9 +53,14 @@ one_hot_filename = '/home/dc/deeplearning/DeepFM/one_hot_dict/one_hot_dict_{}.tx
 one_hot_dict = open(one_hot_filename, 'r')
 one_hot_dict = eval(one_hot_dict.read())
 
+hdfs_list_train = []
 #hdfs://nameservice1/home/dc/warehouse/model_sample/train/stat_date=2019-12-25/part-00003-085a7cd4-e98b-4839-8a32-cbb86b41d7d1.csv
-hdfs_train_path = "hdfs://nameservice1/home/dc/warehouse/model_sample/train/stat_date={}/".format(today)
-hdfs_test_path = "hdfs://nameservice1/home/dc/warehouse/model_sample/test/stat_date={}/".format(today)
+command = "hadoop fs -ls hdfs://nameservice1/home/dc/warehouse/model_sample/train/stat_date={}/".format(today)
+result = os.popen(command).readlines()
+for i in range(2, len(result)):
+	tmp_list = list(result[i].split(" ")[-1])
+	del tmp_list[-1]
+	hdfs_list_train.append("".join(tmp_list))
 
 command_mkdir = "/home/dc/deeplearning/DeepFM/data/{}".format(today_0)
 if os.path.isdir(command_mkdir):
@@ -65,10 +70,10 @@ if os.path.isdir(command_mkdir):
 else:
 	os.mkdir(command_mkdir)
 
-def reverse_data(hdfs_path, model):
+def reverse_train_data(hdfs_path, n):
 	data_ = sc.textFile(hdfs_path)
 	data = data_.collect()
-	file_name = "/home/dc/deeplearning/DeepFM/data/{0}/{1}.libsvm".format(today_0, model)
+	file_name = "/home/dc/deeplearning/DeepFM/data/{1}/tr{0}_{1}.libsvm".format(n, today_0)
 	f = open(file_name, 'w')
 	for i in range(len(data)):
 		tmp_list = data[i].split("\t")
@@ -100,5 +105,56 @@ def reverse_data(hdfs_path, model):
 			f.write("\n")
 	f.close()
 
-reverse_data(hdfs_train_path, 'tr')
-reverse_data(hdfs_test_path, 'va')
+for ii, cn in enumerate(hdfs_list_train):
+	reverse_train_data(cn, ii)
+
+
+
+hdfs_list_test = []
+command_2 = "hadoop fs -ls hdfs://nameservice1/home/dc/warehouse/model_sample/test/stat_date={}/".format(today)
+result_2 = os.popen(command_2).readlines()
+for i in range(2, len(result_2)):
+	tmp_list = list(result_2[i].split(" ")[-1])
+	del tmp_list[-1]
+	hdfs_list_test.append("".join(tmp_list))
+
+
+def reverse_test_data(hdfs_path, n):
+	data_ = sc.textFile(hdfs_path)
+	data = data_.collect()
+	file_name = "/home/dc/deeplearning/DeepFM/data/{1}/va{0}_{1}.libsvm".format(n, today_0)
+	f = open(file_name, 'w')
+	for i in range(len(data)):
+		tmp_list = data[i].split("\t")
+		label = str(tmp_list[0])
+		tmp_list_f = []
+		#del tmp_list[59]
+		#del tmp_list[58]
+		#del tmp_list[15]
+		#del tmp_list[1]
+		#del tmp_list[0]
+		for k in drop_list_index:
+			del tmp_list[k]
+		for ii, cn in enumerate(tmp_list):
+			column_name_code = column_name_dict.get(column_name_list[ii])
+			if cn == "":
+				cn = "null"
+			name = "{}_{}".format(column_name_code, cn.lower())
+			name_ = "{}_null".format(column_name_code)
+			one_hot = one_hot_dict.get(name, one_hot_dict.get(name_))
+			tmp_list_f.append(one_hot)
+		tmp_list_f = ["{}:1".format(iii) for iii in tmp_list_f]
+		tmp_list_f.insert(0, label)
+		if i == len(data)-1:
+			f.write(" ".join(tmp_list_f))
+		else:
+			f.write(" ".join(tmp_list_f))
+			f.write("\n")
+	f.close()
+
+for ii, cn in enumerate(hdfs_list_test):
+	reverse_test_data(cn, ii)
+
+
+
+
